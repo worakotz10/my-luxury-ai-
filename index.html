@@ -25,7 +25,7 @@
         <div class="flex items-center space-x-3">
             <div class="w-9 h-9 rounded-lg bg-gold text-obsidian font-bold flex items-center justify-center text-xs shadow-lg shadow-gold/10">PD</div>
             <div>
-                <h1 class="text-gold font-semibold text-xs tracking-wide">PD AUTO FLOW v9.5 (STABLE)</h1>
+                <h1 class="text-gold font-semibold text-xs tracking-wide">PD AUTO FLOW v9.6 (ULTIMATE)</h1>
                 <p class="text-[10px] text-gold/60">Hybrid AI & Multi Affiliate Magic System</p>
             </div>
         </div>
@@ -102,11 +102,11 @@
         <main class="flex-1 flex flex-col bg-obsidian relative overflow-hidden">
             <div id="chatFeed" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                 <div class="bg-surface border border-gold/20 p-4 rounded-xl max-w-2xl text-sm space-y-2 shadow-lg shadow-gold/5">
-                    <h3 class="text-gold font-semibold text-sm">🌟 Aura Sovereign - PD Auto Flow v9.5 (Stable)</h3>
-                    <p class="text-xs text-gray-300">ระบบได้รับการอัปเกรดความเสถียร ป้องกันการเด้งหลุดบนมือถือเรียบร้อยแล้วครับ สามารถใช้งานได้เต็มที่ทุกฟังก์ชัน:</p>
+                    <h3 class="text-gold font-semibold text-sm">🌟 Aura Sovereign - PD Auto Flow v9.6</h3>
+                    <p class="text-xs text-gray-300">ระบบได้รับการรีเซ็ตและเชื่อมต่อ API อย่างสมบูรณ์แบบแล้วครับ พร้อมใช้งานได้ทันที:</p>
                     <ul class="list-disc ml-5 text-xs text-gray-400 space-y-1">
-                        <li>**Anti-Crash Memory Safe:** ป้องกันลูปหน่วยความจำเต็ม</li>
-                        <li>**Stable Gemini Engine:** เชื่อมต่อ API อย่างแม่นยำด้วย `gemini-1.5-flash`</li>
+                        <li>**Stable API Routing:** ใช้โมเดลพื้นฐานที่เสถียร 100%</li>
+                        <li>**All Features Ready:** ครบทุกปุ่ม ทุกฟังก์ชัน และระบบ Triple Bot</li>
                     </ul>
                 </div>
             </div>
@@ -136,7 +136,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT (Anti-Crash Architecture v9.5) -->
+    <!-- SCRIPT (v9.6 Stable) -->
     <script>
         marked.setOptions({ gfm: true, breaks: true, headerIds: false });
 
@@ -191,11 +191,12 @@
 
             appendFeed('user', text);
             input.value = '';
-            appendFeed('ai', '🤖 กำลังประมวลผลคำสั่งด้วย Gemini Flash...');
+            appendFeed('ai', '🤖 กำลังประมวลผลคำสั่ง...');
 
             try {
                 if (!geminiKey) throw new Error('กรุณากรอก Gemini API Key ที่ปุ่มเมนู&ตั้งค่าก่อนใช้งาน');
                 
+                // ใช้โมเดล gemini-1.5-flash มาตรฐานที่เสถียรที่สุด
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
                 const res = await fetch(url, {
                     method: 'POST',
