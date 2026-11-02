@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA LUXE – Sovereign AI & Creative Canvas</title>
+    <!-- Google Fonts: Kanit & Cinzel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#141414',
+                        surfaceHover: '#1f1f1f',
+                        gold: {
+                            DEFAULT: '#d4af37',
+                            light: '#f3e5ab',
+                            dark: '#aa8c2c',
+                            accent: '#ffdf73'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Marked.js สำหรับแปลง Markdown และ Highlight.js สำหรับโค้ด -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body class="bg-obsidian text-gray-200 font-sans antialiased h-screen flex overflow-hidden selection:bg-gold selection:text-obsidian">
+
+    <!-- SIDEBAR (ประวัติการสนทนา & ตั้งค่า) -->
+    <aside id="sidebar" class="w-80 bg-surface border-r border-gold/20 flex flex-col transition-all duration-300 z-20 md:relative absolute inset-y-0 left-0 transform -translate-x-full md:translate-x-0">
+        <!-- Logo Header -->
+        <div class="p-5 border-b border-gold/20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-light via-gold to-gold-dark flex items-center justify-center shadow-lg shadow-gold/20">
+                    <span class="font-serif font-bold text-obsidian text-xl">A</span>
+                </div>
+                <div>
+                    <h1 class="font-serif font-bold text-gold tracking-wider text-lg">AURA LUXE</h1>
+                    <p class="text-xs text-gold/60 tracking-widest uppercase">Sovereign Intelligence</p>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-gold/70 hover:text-gold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- New Chat Button -->
+        <div class="p-4">
+            <button onclick="startNewChat()" class="w-full py-3 px-4 bg-gradient-to-r from-gold-dark via-gold to-gold-light text-obsidian font-semibold rounded-xl shadow-lg shadow-gold/10 hover:shadow-gold/30 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>สนทนาใหม่ (New Chat)</span>
+            </button>
+        </div>
+
+        <!-- Chat History List -->
+        <div id="chatHistory" class="flex-1 overflow-y-auto px-4 space-y-2 py-2">
+            <!-- รายการประวัติจะถูกเพิ่มอัตโนมัติ -->
+        </div>
+
+        <!-- API Key & Settings Panel -->
+        <div class="p-4 border-t border-gold/20 bg-obsidian/50 space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-gold/80 mb-1">Gemini API Key</label>
+                <div class="relative">
+                    <input type="password" id="apiKeyInput" placeholder="วาง API Key ที่นี่..." class="w-full bg-surface border border-gold/30 rounded-lg px-3 py-2 text-sm text-gold placeholder-gold/30 focus:outline-none focus:border-gold pr-10">
+                    <button onclick="saveApiKey()" class="absolute right-2 top-1/2 -translate-y-1/2 text-gold/70 hover:text-gold text-xs px-2 py-1 bg-gold/10 rounded">บันทึก</button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gold/80 mb-1">เลือกPersona / บทบาท AI</label>
+                <select id="personaSelect" onchange="changePersona()" class="w-full bg-surface border border-gold/30 rounded-lg px-3 py-2 text-sm text-gold focus:outline-none focus:border-gold">
+                    <option value="general">👑 AURA Luxe (ผู้ช่วยอัจฉริยะส่วนตัว)</option>
+                    <option value="coder">💻 Master Developer (ผู้เชี่ยวชาญโค้ดและระบบ)</option>
+                    <option value="creator">📈 TikTok & Content Creator (เซียนปักตะกร้า & การตลาด)</option>
+                    <option value="writer">✍️ Executive Copywriter (นักเขียนคำโฆษณาหรูหรา)</option>
+                </select>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CHAT & WORKSPACE -->
+    <main class="flex-1 flex flex-col h-full bg-obsidian relative overflow-hidden">
+        
+        <!-- Top Navbar -->
+        <header class="h-16 border-b border-gold/20 bg-surface/80 backdrop-blur-md flex items-center justify-between px-4 z-10">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="text-gold/80 hover:text-gold p-2 rounded-lg hover:bg-gold/10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <h2 id="currentPersonaTitle" class="font-serif text-gold font-medium tracking-wide">AURA LUXE Assistant</h2>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleCanvas()" class="px-3 py-1.5 bg-gold/10 border border-gold/30 rounded-lg text-xs font-medium text-gold hover:bg-gold/20 transition-all flex items-center space-x-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    <span>Toggle Canvas</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area: Chat + Split Code Preview Canvas -->
+        <div class="flex-1 flex overflow-hidden relative">
+            
+            <!-- Chat Container -->
+            <div id="chatContainer" class="flex-1 flex flex-col h-full overflow-hidden">
+                <!-- Message Feed -->
+                <div id="messageFeed" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                    <!-- Welcome Message -->
+                    <div class="flex items-start space-x-4 max-w-3xl mx-auto">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-light to-gold-dark flex-shrink-0 flex items-center justify-center text-obsidian font-serif font-bold shadow-lg shadow-gold/20">A</div>
+                        <div class="flex-1 bg-surface border border-gold/20 rounded-2xl p-5 shadow-xl text-gray-200 space-y-3">
+                            <h3 class="font-serif text-gold text-lg font-semibold">ยินดีต้อนรับสู่ AURA LUXE</h3>
+                            <p class="text-sm leading-relaxed text-gray-300">ระบบปัญญาประดิษฐ์ระดับพรีเมียม พร้อมสนับสนุนคุณเต็มรูปแบบ ทั้งการเขียนโปรแกรม การสร้างสื่อคอนเทนต์ การตลาด TikTok Shop และการสร้างสรรค์รูปภาพหรือวิดีโอด้วย AI</p>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <button onclick="sendPreset('ช่วยวางโครงสร้างระบบ AI Workflow สำหรับทำ TikTok Shop ให้หน่อย')" class="text-xs bg-gold/10 border border-gold/30 text-gold px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">🚀 ระบบ TikTok Shop Workflow</button>
+                                <button onclick="sendPreset('สร้างโค้ดหน้าเว็บแดชบอร์ดหรูหราด้วย Tailwind CSS ให้หน่อย')" class="text-xs bg-gold/10 border border-gold/30 text-gold px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">💻 สร้างเว็บแดชบอร์ดหรู</button>
+                                <button onclick="sendPreset('ช่วยคิดไอเดียคลิปสินค้าปักตะกร้าขายดีไวรัล')" class="text-xs bg-gold/10 border border-gold/30 text-gold px-3 py-1.5 rounded-lg hover:bg-gold/20 transition-all">📈 ไอเดียคลิปปักตะกร้า</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Box Bar -->
+                <div class="p-4 md:p-6 bg-obsidian border-t border-gold/20">
+                    <div class="max-w-4xl mx-auto bg-surface border border-gold/30 rounded-2xl shadow-2xl p-3 focus-within:border-gold transition-all">
+                        <div id="imagePreviewContainer" class="hidden px-2 pb-2 flex items-center space-x-2">
+                            <img id="imagePreview" class="w-16 h-16 object-cover rounded-lg border border-gold/30" />
+                            <button onclick="clearImage()" class="text-red-400 text-xs hover:underline">ลบรูปภาพออก</button>
+                        </div>
+                        <textarea id="userInput" rows="1" oninput="autoResize(this)" onkeydown="handleKeyDown(event)" placeholder="พิมพ์ข้อความของคุณที่นี่... (Shift + Enter เพื่อขึ้นบรรทัดใหม่)" class="w-full bg-transparent text-gray-100 placeholder-gold/30 focus:outline-none resize-none px-2 text-sm max-h-32"></textarea>
+                        
+                        <div class="flex items-center justify-between pt-2 border-t border-gold/10 mt-2 px-1">
+                            <div class="flex items-center space-x-2">
+                                <!-- Upload Image Button -->
+                                <label class="p-2 text-gold/70 hover:text-gold hover:bg-gold/10 rounded-lg cursor-pointer transition-all" title="แนบรูปภาพ">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <input type="file" id="imageInput" accept="image/*" onchange="handleImageSelect(event)" class="hidden">
+                                </label>
+                                <!-- Voice Speech-to-Text Button -->
+                                <button onclick="toggleSpeechRecognition()" id="micBtn" class="p-2 text-gold/70 hover:text-gold hover:bg-gold/10 rounded-lg transition-all" title="พูดด้วยเสียง">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                </button>
+                                <!-- Image Generation Prompt Trigger -->
+                                <button onclick="triggerImageGenerationModal()" class="p-2 text-gold/70 hover:text-gold hover:bg-gold/10 rounded-lg transition-all" title="สร้างรูปภาพ AI">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                </button>
+                            </div>
+                            <button onclick="sendMessage()" class="bg-gradient-to-r from-gold-dark to-gold text-obsidian px-5 py-2 rounded-xl font-semibold shadow-md hover:shadow-gold/30 transition-all flex items-center space-x-1.5 text-sm">
+                                <span>ส่งข้อความ</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CODE PREVIEW & APP CANVAS (Hidden by default, toggled on demand) -->
+            <div id="canvasPanel" class="w-1/2 border-l border-gold/20 bg-surface flex flex-col hidden md:relative absolute inset-y-0 right-0 z-30">
+                <div class="h-12 border-b border-gold/20 flex items-center justify-between px-4 bg-obsidian">
+                    <span class="font-serif text-gold text-sm font-semibold tracking-wide">Live Code & Preview Canvas</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="switchCanvasTab('preview')" id="tabPreviewBtn" class="px-3 py-1 bg-gold text-obsidian text-xs font-semibold rounded-lg">Preview</button>
+                        <button onclick="switchCanvasTab('code')" id="tabCodeBtn" class="px-3 py-1 bg-surfaceHover text-gold text-xs font-semibold rounded-lg">Code</button>
+                        <button onclick="toggleCanvas()" class="text-gold/70 hover:text-gold p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 relative overflow-hidden bg-white">
+                    <iframe id="previewIframe" class="w-full h-full border-none"></iframe>
+                    <div id="codeContainer" class="absolute inset-0 bg-obsidian p-4 overflow-auto hidden">
+                        <pre><code id="codeOutput" class="language-html text-xs"></code></pre>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal สำหรับสร้างรูปภาพ AI ด้วย Pollinations -->
+    <div id="imageGenModal" class="fixed inset-0 bg-obsidian/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-surface border border-gold/40 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <h3 class="font-serif text-gold text-lg font-bold">สร้างรูปภาพ AI (Pollinations Engine)</h3>
+            <div>
+                <label class="block text-xs font-medium text-gold/80 mb-1">คำอธิบายภาพ (Prompt)</label>
+                <textarea id="imgPromptInput" rows="3" placeholder="ระบุสิ่งที่ต้องการสร้าง เช่น หรูหรา สีดำทอง..." class="w-full bg-obsidian border border-gold/30 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-gold"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="closeImageGenModal()" class="px-4 py-2 bg-surfaceHover text-gold/70 rounded-xl text-sm">ยกเลิก</button>
+                <button onclick="generateImageAI()" class="px-5 py-2 bg-gradient-to-r from-gold-dark to-gold text-obsidian font-semibold rounded-xl text-sm shadow-lg">สร้างรูปภาพ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let chatSessions = JSON.parse(localStorage.getItem('aura_chats') || '[]');
+        let currentSessionId = null;
+        let messages = [];
+        let base64Image = null;
+        let currentApiKey = localStorage.getItem('aura_gemini_key') || '';
+        let currentPersona = 'general';
+
+        const personaPrompts = {
+            general: "คุณคือ AURA LUXE ผู้ช่วย AI ระดับพรีเมียมไอคิว 200 ตอบคำถามอย่างฉลาด แม่นยำ และสุภาพหรูหรา",
+            coder: "คุณคือ Master Developer ผู้เชี่ยวชาญการเขียนโค้ดสถาปัตยกรรมระบบขั้นสูง ไอคิว 200 เขียนโค้ดที่สมบูรณ์แบบพร้อมใช้งาน",
+            creator: "คุณคือ TikTok Shop Affiliate Expert วางระบบ Workflow อัตโนมัติ เลือกสินค้าเปอร์เซ็นต์ขายดี และสร้างคอนเทนต์ไวรัลปักตะกร้า",
+            writer: "คุณคือ Executive Copywriter นักเขียนคำโฆษณาและบทความระดับหรูหรา ดึงดูดใจยอดขายสูง"
+        };
+
+        document.getElementById('apiKeyInput').value = currentApiKey;
+
+        function saveApiKey() {
+            currentApiKey = document.getElementById('apiKeyInput').value.trim();
+            localStorage.setItem('aura_gemini_key', currentApiKey);
+            alert('บันทึก API Key สำเร็จ!');
+        }
+
+        function changePersona() {
+            currentPersona = document.getElementById('personaSelect').value;
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function toggleCanvas() {
+            const canvas = document.getElementById('canvasPanel');
+            canvas.classList.toggle('hidden');
+        }
+
+        function switchCanvasTab(tab) {
+            const preview = document.getElementById('previewIframe');
+            const code = document.getElementById('codeContainer');
+            const pBtn = document.getElementById('tabPreviewBtn');
+            const cBtn = document.getElementById('tabCodeBtn');
+
+            if (tab === 'preview') {
+                preview.classList.remove('hidden');
+                code.classList.add('hidden');
+                pBtn.className = "px-3 py-1 bg-gold text-obsidian text-xs font-semibold rounded-lg";
+                cBtn.className = "px-3 py-1 bg-surfaceHover text-gold text-xs font-semibold rounded-lg";
+            } else {
+                preview.classList.add('hidden');
+                code.classList.remove('hidden');
+                pBtn.className = "px-3 py-1 bg-surfaceHover text-gold text-xs font-semibold rounded-lg";
+                cBtn.className = "px-3 py-1 bg-gold text-obsidian text-xs font-semibold rounded-lg";
+            }
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64Image = e.target.result;
+                    document.getElementById('imagePreview').src = base64Image;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearImage() {
+            base64Image = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+        }
+
+        function sendPreset(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text && !base64Image) return;
+
+            if (!currentApiKey) {
+                alert('กรุณากรอกและบันทึก Gemini API Key ที่มุมซ้ายล่างก่อนใช้งาน');
+                return;
+            }
+
+            const userMsg = { role: 'user', text: text, image: base64Image };
+            messages.push(userMsg);
+            appendMessageUI(userMsg);
+
+            input.value = '';
+            input.style.height = 'auto';
+            const currentImg = base64Image;
+            clearImage();
+
+            // AI Typing Indicator
+            const loadingId = appendLoadingUI();
+
+            try {
+                const responseText = await callGeminiAPI(text, currentImg);
+                removeLoadingUI(loadingId);
+                const aiMsg = { role: 'model', text: responseText };
+                messages.push(aiMsg);
+                appendMessageUI(aiMsg);
+
+                // ตรวจจับหากมีโค้ด HTML เพื่อส่งเข้า Canvas อัตโนมัติ
+                extractAndRenderCode(responseText);
+            } catch (error) {
+                removeLoadingUI(loadingId);
+                appendMessageUI({ role: 'model', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message });
+            }
+        }
+
+        async function callGeminiAPI(promptText, imgData) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentApiKey}`;
+            
+            let contents = [];
+            messages.slice(0, -1).forEach(m => {
+                contents.push({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.text }]
+                });
+            });
+
+            let currentParts = [{ text: (personaPrompts[currentPersona] || '') + "\n\nคำถาม: " + promptText }];
+            if (imgData) {
+                const base64Clean = imgData.split(',')[1];
+                currentParts.push({
+                    inline_data: {
+                        mime_type: "image/jpeg",
+                        data: base64Clean
+                    }
+                });
+            }
+
+            contents.push({ role: 'user', parts: currentParts });
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents })
+            });
+
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function appendMessageUI(msg) {
+            const feed = document.getElementById('messageFeed');
+            const isUser = msg.role === 'user';
+            
+            const div = document.createElement('div');
+            div.className = `flex items-start space-x-4 max-w-3xl mx-auto ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
+            
+            let imgTag = msg.image ? `<img src="${msg.image}" class="max-w-xs rounded-xl mb-2 border border-gold/30">` : '';
+            let formattedText = isUser ? escapeHtml(msg.text) : marked.parse(msg.text);
+
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${isUser ? 'from-gold-dark to-gold' : 'from-gold-light to-gold-dark'} flex-shrink-0 flex items-center justify-center text-obsidian font-serif font-bold shadow-lg shadow-gold/20">${isUser ? 'U' : 'A'}</div>
+                <div class="flex-1 bg-surface border border-gold/20 rounded-2xl p-5 shadow-xl text-gray-200 space-y-2">
+                    ${imgTag}
+                    <div class="prose prose-invert max-w-none text-sm leading-relaxed">${formattedText}</div>
+                    ${!isUser ? `<button onclick="speakText(this)" class="text-xs text-gold/70 hover:text-gold flex items-center space-x-1 pt-2"><span>🔊 ฟังเสียง</span></button>` : ''}
+                </div>
+            `;
+            feed.appendChild(div);
+            feed.scrollTop = feed.scrollHeight;
+            hljs.highlightAll();
+        }
+
+        function appendLoadingUI() {
+            const feed = document.getElementById('messageFeed');
+            const id = 'loading_' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `flex items-start space-x-4 max-w-3xl mx-auto`;
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-light to-gold-dark flex-shrink-0 flex items-center justify-center text-obsidian font-serif font-bold shadow-lg shadow-gold/20">A</div>
+                <div class="bg-surface border border-gold/20 rounded-2xl p-4 shadow-xl text-gold animate-pulse text-sm">กำลังประมวลผลด้วยระบบไอคิว 200...</div>
+            `;
+            feed.appendChild(div);
+            feed.scrollTop = feed.scrollHeight;
+            return id;
+        }
+
+        function removeLoadingUI(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function speakText(btn) {
+            const text = btn.parentElement.innerText.replace('🔊 ฟังเสียง', '').trim();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'th-TH';
+            speechSynthesis.speak(utterance);
+        }
+
+        let recognition;
+        function toggleSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('เบราว์เซอร์นี้ไม่รองรับระบบเสียงพูด');
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'th-TH';
+            recognition.onresult = function(event) {
+                document.getElementById('userInput').value = event.results[0][0].transcript;
+            };
+            recognition.start();
+        }
+
+        function extractAndRenderCode(text) {
+            const match = text.match(/```html([\s\S]*?)```/);
+            if (match) {
+                const code = match[1].trim();
+                document.getElementById('codeOutput').innerText = code;
+                hljs.highlightElement(document.getElementById('codeOutput'));
+                
+                const iframe = document.getElementById('previewIframe');
+                iframe.srcdoc = code;
+                
+                document.getElementById('canvasPanel').classList.remove('hidden');
+            }
+        }
+
+        function triggerImageGenerationModal() {
+            document.getElementById('imageGenModal').classList.remove('hidden');
+        }
+
+        function closeImageGenModal() {
+            document.getElementById('imageGenModal').classList.add('hidden');
+        }
+
+        function generateImageAI() {
+            const prompt = document.getElementById('imgPromptInput').value.trim();
+            if (!prompt) return;
+            closeImageGenModal();
+
+            const encoded = encodeURIComponent(prompt);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true`;
+
+            const aiMsg = { role: 'model', text: `นี่คือรูปภาพที่สร้างจาก Prompt: "${prompt}"\n\n![Generated Image](${imageUrl})` };
+            messages.push(aiMsg);
+            appendMessageUI(aiMsg);
+        }
+
+        function startNewChat() {
+            messages = [];
+            document.getElementById('messageFeed').innerHTML = `
+                <div class="flex items-start space-x-4 max-w-3xl mx-auto">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-light to-gold-dark flex-shrink-0 flex items-center justify-center text-obsidian font-serif font-bold shadow-lg shadow-gold/20">A</div>
+                    <div class="flex-1 bg-surface border border-gold/20 rounded-2xl p-5 shadow-xl text-gray-200 space-y-3">
+                        <h3 class="font-serif text-gold text-lg font-semibold">เริ่มการสนทนาใหม่</h3>
+                        <p class="text-sm leading-relaxed text-gray-300">พร้อมช่วยเหลือคุณแล้วครับ มีภารกิจอะไรให้ระบบ AI จัดการแจ้งได้เลย</p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
